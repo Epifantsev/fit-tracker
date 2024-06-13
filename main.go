@@ -35,6 +35,9 @@ func (t Training) distance() float64 {
 // meanSpeed возвращает среднюю скорость бега или ходьбы.
 func (t Training) meanSpeed() float64 {
 	// вставьте ваш код ниже
+	if t.Duration.Hours() == 0 {
+		return 0
+	}
 
 	return t.distance() / float64(t.Duration.Hours())
 }
@@ -105,6 +108,9 @@ type Running struct {
 // Это переопределенный метод Calories() из Training.
 func (r Running) Calories() float64 {
 	// вставьте ваш код ниже
+	if r.Duration.Hours() == 0 {
+		return 0
+	}
 	return ((CaloriesMeanSpeedMultiplier*r.meanSpeed() + CaloriesMeanSpeedShift) * float64(r.Weight) / MInKm * r.Duration.Hours() * MinInHours)
 }
 
@@ -138,7 +144,11 @@ func (w Walking) Calories() float64 {
 	// вставьте ваш код ниже
 	averageSpeedInMInSec := w.meanSpeed() * KmHInMsec
 	averageSpeedInMInSecPow := math.Pow(averageSpeedInMInSec, 2)
-	return ((CaloriesWeightMultiplier*float64(w.Weight) + (averageSpeedInMInSecPow/CmInM)*CaloriesSpeedHeightMultiplier*float64(w.Weight)) * w.meanSpeed() * MinInHours)
+	heightInM := w.Height / CmInM
+	if heightInM == 0 || w.Duration.Hours() == 0 {
+		return 0
+	}
+	return ((CaloriesWeightMultiplier*float64(w.Weight) + (averageSpeedInMInSecPow/heightInM)*CaloriesSpeedHeightMultiplier*float64(w.Weight)) * w.Duration.Hours() * MinInHours)
 
 }
 
@@ -171,6 +181,9 @@ type Swimming struct {
 // Это переопределенный метод Calories() из Training.
 func (s Swimming) meanSpeed() float64 {
 	// вставьте ваш код ниже
+	if s.Duration.Hours() == 0 {
+		return 0
+	}
 	return float64(s.LengthPool) * float64(s.CountPool) / MInKm / float64(s.Duration.Hours())
 }
 
@@ -187,7 +200,16 @@ func (s Swimming) Calories() float64 {
 // Это переопределенный метод TrainingInfo() из Training.
 func (s Swimming) TrainingInfo() InfoMessage {
 	// вставьте ваш код ниже
-	return s.Training.TrainingInfo()
+	info := InfoMessage{
+		TrainingType: s.TrainingType,
+		Duration:     s.Duration,
+		Distance:     s.distance(),
+		Speed:        s.meanSpeed(),
+		Calories:     s.Calories(),
+	}
+
+	return info
+
 }
 
 // ReadData возвращает информацию о проведенной тренировке.
